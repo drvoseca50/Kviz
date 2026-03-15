@@ -11,7 +11,7 @@ export default function AuthLayout({
       </div>
 
       {/* Right side — dark branding panel */}
-      <div className="hidden bg-gradient-to-br from-[#0A1628] to-[#111D33] lg:flex lg:w-1/2 lg:flex-col lg:items-center lg:justify-center">
+      <div className="hidden bg-gradient-to-br from-[#1E1E2D] to-[#2A2A3C] lg:flex lg:w-1/2 lg:flex-col lg:items-center lg:justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white">Testikko</h1>
           <p className="mt-3 text-lg text-gray-400">

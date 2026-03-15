@@ -51,8 +51,8 @@
 }
 
 :root {
-  /* Primary background — white */
-  --background: #FFFFFF;
+  /* Primary background — soft off-white */
+  --background: #F8F9FC;
   --foreground: #111827;
 
   /* Cards */
@@ -89,18 +89,18 @@
   --input: #E5E7EB;
   --ring: #2563EB;
 
-  /* Dark panel — deep navy for sidebar & auth right panel */
-  --dark-panel: #0A1628;
+  /* Dark panel — deep purple-black for sidebar & auth right panel */
+  --dark-panel: #1E1E2D;
   --dark-panel-foreground: #F3F4F6;
 
-  /* Sidebar — dark navy */
-  --sidebar: #0A1628;
-  --sidebar-foreground: #E5E7EB;
+  /* Sidebar — dark purple-black */
+  --sidebar: #1E1E2D;
+  --sidebar-foreground: #B0B0C3;
   --sidebar-primary: #3B82F6;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #111D33;
+  --sidebar-accent: #2A2A3C;
   --sidebar-accent-foreground: #E5E7EB;
-  --sidebar-border: #1E293B;
+  --sidebar-border: #2A2A3C;
   --sidebar-ring: #3B82F6;
 
   /* Charts */
@@ -119,8 +119,6 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   }
 }

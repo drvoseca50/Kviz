@@ -37,8 +37,9 @@ Based on the reference design (`requirements/MainDesign.png`), the application f
 ### Color Palette
 | Role | Color | Usage |
 |---|---|---|
-| Primary background | `#FFFFFF` (white) | Forms, content areas, cards |
-| Dark panel | `#0A1628` → `#111D33` (deep navy gradient) | Auth right panel, sidebar navigation, dark sections |
+| Primary background | `#F8F9FC` (soft off-white) | Content areas, main background |
+| Card background | `#FFFFFF` (white) | Forms, cards, popovers |
+| Dark panel | `#1E1E2D` → `#2A2A3C` (deep purple-black gradient) | Auth right panel, sidebar navigation, dark sections |
 | Primary accent | `#2563EB` → `#3B82F6` (bright blue) | Buttons, active states, links, highlights |
 | Text primary | `#111827` (near-black) | Headings, body text |
 | Text secondary | `#6B7280` (gray-500) | Labels, helper text, placeholders |
@@ -48,7 +49,7 @@ Based on the reference design (`requirements/MainDesign.png`), the application f
 | Warning | `#F59E0B` (amber) | Pending states, warnings |
 
 ### Typography
-- **Font family**: Clean sans-serif (Inter or system default via Tailwind)
+- **Font family**: Plus Jakarta Sans (Google Fonts, loaded via Next.js font optimization)
 - **Headings**: Bold, dark, generous spacing
 - **Body text**: Regular weight, secondary gray for labels
 
@@ -57,7 +58,7 @@ Based on the reference design (`requirements/MainDesign.png`), the application f
 - **Buttons**: Fully rounded or `rounded-lg`, solid primary blue fill, white text, hover darkens slightly
 - **Cards**: White background, subtle shadow (`shadow-sm`), rounded corners (`rounded-xl`)
 - **Navigation tabs**: Underline-style active indicator in primary blue
-- **Sidebar**: Dark navy background, white/light text, active item highlighted with blue accent
+- **Sidebar**: Dark purple-black background (`#1E1E2D`), muted light text (`#B0B0C3`), active item highlighted with blue accent on `#2A2A3C` background
 - **Tables**: Clean borders, alternating row shading, rounded container
 
 ### Design Principles
