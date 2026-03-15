@@ -1,0 +1,138 @@
+Project Testikko
+
+Intro
+Projekat obuhvata razvoj i implementaciju aplikacije koja će se koristiti za procenu i razvoj svih  kompetencija zaposlenih u kompaniji ili organizacionoj jedinici. Kompetencije su profesionalno/tehnicke prirode i zastitno/bezbednosne prirode. Glavna funkcionalnost aplikacije bi bila definisanje kompetencija, definisanje testova na bazi definisanih kompetencija, ocenjivanje i estimacija osposobljenosti zaposlenih na osnovu rezultata testova, vizuelizacija rezultata po mnogim agregcaionim kriterijumima.
+Da li ovde stavljamo i kreiranje kurseva i dodeljivanje kurseva na osnvou rezultata testova?
+Aplikacija je namenjna samo za desktop i laptop racunare unutar lokalne mreze. Postavka aplikacije je na on-prem serverima u bare-metal arhitekturi.
+Potrebno je implementirati nekoliko modula funkcionalnosti:
+    1. Modul za dodavanje i upravljanje zaposlenih i definiciju radnih mesta
+    2. Modul za unos i održavanje kompetencija i asociranih pitanja.
+    3. Modul za generaciju testova na osnovu skupa kompetencija za dato radno mesto.
+    4. Modul za testiranje
+    5. Modul za dodelu kurseva
+    6. Modul za unos i održavanje kurseva
+    7. Moduli za dashboardovoe, izveštavanje i KPI
+Definicija kategorija kompetencija:
+Svako radno mesto ima skup kompentencija koje radnik mora da poseduje da bi uspesno poslovao. Kompetencije se dele na profesionalne i bezbednosne. U aplikaciji, svaka kompetencija sa sobom nosi skup pitanja koje definisu tu kompentenciju. Pretpostavka je da kompetencije nemaju overlap, tj. da je skup pitanja jedinstven za datu kompentenciju. Menadzer aplikacije moze da menja pitanja, dodaje nova, brise stara I menja postojeca, za datu kompenteciju. Takodje moze da menja I listu kompetencija, naziv kompetencija, uklanjanje kompetencije, kreiranje nove. Iz tog skupa pitanja, biraju se pitanja za test za datu kompenteciju, sto menadzer takodje radi rucno.
+
+Moduli funkcionalnosti – detaljnije:
+    1 Modul za dodavanje i upravljanje zaposlenih i definiciju radnih mesta
+    2 Modul za unos i održavanje kompetencija i asociranih pitanja:
+       Kreiranje obrazaca za unos, brisanje I promenu kompetencija i pitanja. Provera podataka koji se unose u pogledu tačnosti, usklađenosti sa kriterijumima selekcije. Slanje uočenih grešaka odgovornim licima. Mogućnost ručne korekcije netačnih/nedostajućih podatak 
+       
+    3 Modul za generaciju testova na osnovu skupa kompetencija za dato radno mesto.
+       
+       Креирање теста према групи радних места који це се састојати од броја питања која су су дефинисана унутар апликације и могу да се мењају од стране одговорног лица приликом сваке доделе теста.Такође мора да садржи опцију да се приликом доделе теста дефинисе и колико питања из ког нивоа тезине иде у тест. Тест мора да садржи унапред дефинисане компетенције за свако радно место и да буде послат заполенима из те радне групе. U okviru trećeg modula korisnici treba da vide koji testovi su im na čekanju, kada su kreirani, koliko pitanja ima u testu i vreme koje imaju na raspolaganju. Iz tog prozora treba da ih modul vodi na samo izvršenje testa gde će prvo morati da dobiju sve informacije vezano za test i nakon toga samu izradu testa.
+
+    4 Modul za testiranje.
+       
+       Zaposleni добија тест са информацијама који тестови су на чекању, када су креирани, колико питања има у тесту и време које имају на располагању заједно са упутством за израду теста. У изради теста свако питање мора да се проказује одвојено, да има могућност да се прикаже слика везана за питање, и такође, да се подржи опција да се одговори слажу у одређеном редоследу и да се померају и постављају на слику. Након заврсетка теста добија се графички приказ резултата као и преглед  тачних и нетачних одговора
+    5 Moduli za dodelu kurseva
+    6 Moduli za unos i odrzavanje kurseva
+       
+    7 Moduli za dashboardovoe, izveštavanje i KPI
+       
+       Потребно је обезбедити визуелизацију података о резултатима теста према кориснику,тесту, групи запослених, средњој вредности према радном месту. Омогућити да свака рола има предефинисан дешборд. Сваки график на дешборду мора да има опцију да се увећа преко целог екрана и да се појави картица са детаљним информацијама о свему што се налази на графику.
+       Формирање основних КПИ о броју задатих тестова, проценту успесности сваког теста и најбоље и најлосије  развијеној компетенцији. 
+
+    8 Аутоматско креирање известаја о резултатима компетног теста ХСЕ. Обавештавање учесника процеса о доспелим тестовима у самој апликацији и путем е-маила. Обавештавање одговорних ХСЕ лица да је корисник више од 2 пута пао тест и да му је тест закључан. Обавештавање одговорних ХСЕ лица да корисник није прегледао обуку у периоду од 10 дана од заврсетка теста кроз нотификацију и путем е-маила
+    
+Backend Logics
+Database
+Koristi se tabelarna relaciona baza podataka kao osnova beckend-a
+U bazi podataka cuvaju se:
+    1. Zaposleni, opisi I nazivi njihovih radnih mesta
+    2. Korisnici aplikacije I njihove role
+    3. kompetencije I njihova pitanja. 
+    4. Mapiranja kompetencija I radnih mesta
+Roles
+U aplikaciji moraju biti definisane sledeće role:
+    1. ADMIN – ima sva prava u aplikaciji
+    2. MANAGER – ima mogućnost da upravlja sa zaposlenima, testovima i kursevima koji pripadaju njegovom odeljenju kao i da vidi izveštaje za sve njegove zaposlene
+    3. USER - Pokretanje i rešavanje zadatog testa. Pokretanje i rešavanje zadatog testa tehničkih kompetencija. Pregled svojih rezultata testa na Dashboardu.
+Tables - primeri
+Potrebno je da aplikacija ima minimum sledece tabele:
+    1. Korisnik - zaposleni u kompaniji
+    2. Role
+    3. Kompetencije – sifarnik svih kompentencija u kompaniji
+    4. Pitanja – spisak svih pitanja
+    5. Odgovori – spisak svih odgovora na pitanje
+    6. PtanjaOdgovor – veza pitanja i odgovora
+    7. RadnaMesta - spisak svih ranih mesta u kompaniji
+    8. KompetencijePitanja – veza kompetencija i pitanja
+    9. RadnaMestaKompetencije – veza radnog mesta i kompetencija
+Nije potpun spisak tabela koje je potrebno implementirati. 
+Logging
+Sistem će morati da ima istoriju logova i svi logovi aplikacije treba da budu dostupni internim korisnicima sa odgovarajućim privilegijama u cilju analize.
+Notifications Engine
+Sistem će morati da automatski šalje obaveštenje na e-mail korisnika tako što će se u tabeli korisnika nalaziti pored imena odgovarajuća e-mail adresa.
+Obaveštavanje učesnika procesa o dospelim testovima u samoj aplikaciji i putem e-maila.
+Obaveštavanje odgovornih lica da je korisnik više od 2 puta pao test i da mu je test zaključan.
+Obaveštavanje odgovornih lica da korisnik nije pregledao obuku u periodu od 10 dana od završetka testa kroz notifikaciju i putem e-maila.
+
+Tech Stack for Beckend
+Hardverska i mrežna arhitektura
+
+Glavne infrastrukturne komponente platforme su 2 aplikativna servera. Serveri će se nalaziti u LOCAL mrežnom opsegu. Ove (virtuelne) mašine moraju biti on-premise i vidljive jedne drugima (putem standardnog IP rutiranja / domain name mehanizmi). 
+Komunikacija: Između korporativnih računara i aplikativnih servera treba da bude obezbeđena HTTPS protokolom.
+Razvoj aplikacije ne može da koristi kontejnerske tehnologije (npr. docker i sl.)
+
+Beckend tech stack(moguće promeniti):
+Aplikacija treba da bude razvijena u tehnologijama koje se koriste za današnje moderne aplikacije.
+       
+    1. Next.js APi Routes/Route Handlers
+    2. PostgresSQL + Prisma ORM
+    3. NextAuth.js (Auth.js v5)
+    4. Vercel
+Security
+Aplikacija treba da ima implementirane sigurnosne mehanizme kako bi se obezbedio integritet podataka. Implementirati sva Best Practice sigurnosti koje jedna aplikacija treba da ima. Navesti ukratko u dokumentaciji koji su sve mehanizmi sigurnosti implementirani i koja je uloga.
+Kategorisati sve sigurnosne implementacije u tri grupe – Kritično, Nice to have, Nije obavezno.
+
+Frontend Logics
+Stranica za logovanje 
+Na početnoj stranici veb aplikacije neophodno je da postoji interfejs za logovanje uz pomoć korisničkog imena i lozinke koju će administrator sistema dodeliti korisniku, sa rokom od 3 dana da promeni lozinku ili prilikom prvog logovanja, koja će omogućiti svakom korisniku da zaštiti svoje podatke i uloguje se na svoj nalog u okviru svoje role u aplikaciji.
+Admin Panel
+Omogućava da se kompletno upravlja svim delovima aplikacije i podacima kroz jedan modul.
+Svakom korisniku će se obezbediti rola sa minimalnim pravima za obavljanje posla. Administrator će kreirati šifru koju će korisnik morati da izmeni u roku od 3 dana. Lozinka koju će formirati korisnik i administrator potrebno je da sadrži 15 karaktera, uključujući velika i mala slova i specijalni karakter.
+Ovaj modul mora da sadrži informacije kojim korisnicima su testovi zaključani i upravljanje ovim modulom ima korisnik sa ADMIN/MANAGER ulogom koji može da otključa i zaključa testove korisnicima kojima je dodeljen kao MANAGER korisnik.
+Manager Panel
+Moze da menadzuje kompetencije, radna mesta, kreira testove, salje testove, itd….
+Menadzeri mogu da menjaju svaki logicki elemenat backend baze kroz UI.
+Kreiranje testa prema grupi radnih mesta koji će se sastojati od broja pitanja koja su definisana unutar aplikacije i mogu da se menjaju od strane odgovornog lica prilikom svake dodele testa. Takođe mora da sadrži opciju da se prilikom dodele testa definiše i koliko pitanja iz kog nivoa težine ide u test. Test mora da sadrži unapred definisane kompetencije za svako radno mesto i da bude poslat zaposlenima iz te radne grupe.
+
+User Panel
+Покретање и решавање задатог ХСЕ теста. Покретање и решавањезадатог теста техничких компетенција. Преглед својих резултата теста на Дасхбоарду.
+Zaposleni dobija test sa informacijama koji testovi su na čekanju, kada su kreirani, koliko pitanja ima u testu i vreme koje imaju na raspolaganju zajedno sa uputstvom za izradu testa. U izradi testa svako pitanje mora da se prikazuje odvojeno, da ima mogućnost da se prikaže slika vezana za pitanje, i takođe, da se podrži opcija da se odgovori slažu u određenom redosledu i da se pomeraju i postavljaju na sliku. Nakon završetka testa dobija se grafički prikaz rezultata kao i pregled tačnih i netačnih odgovora.
+U ovom modulu zaposleni treba da vidi koji testovi su mu na čekanju, kada su kreirani, koliko pitanja ima u testu i vreme koje imaju na raspolaganju. Iz tog prozora treba da ih modul vodi na samo izvršenje testa gde će prvo morati da dobiju sve instrukcije vezano za test i samu izradu testa. U izradi testa svako pitanje mora da se prikazuje odvojeno, da ima mogućnost da se prikaže slika vezana za pitanje i takođe da se podrži opcija da se odgovori raspoređuju u određenom redosledu i da se pomeraju i postavljaju na sliku. Ukoliko korisnik nije položio sve kompetencije mora da se kreira automatski novi test samo sa kompetencijama koje nije položio, ali sa novim nasumičnim pitanjima iz baze. Ovaj modul mora da podrži biznis logiku kako se dodeljuju testovi.
+
+Profile
+Isti za sve role. U ovom stranici korisnik treba da ima mogućnost da podesi nalog. Konkretno da može da promeni sliku i izmeni lozinku. Korisničko ime i ostali podaci ne mogu da se menjaju, jer su predefinisani i preuzimaju se iz baze.
+Dashboards
+Svaki panel treba da ima link ka dashboardim-a prilagodjenim za rolu panela.
+Potrebno je obezbediti vizualizaciju podataka o rezultatima testa prema korisniku, testu, grupi zaposlenih, srednjoj vrednosti prema radnom mestu. Omogućiti da svaka rola ima predefinisan dashboard. USER uloga vidi samo informacije vezane za ulogu USER, MANAGER za sebe i sve zaposlene pod tim MANAGER ulogom, a ADMIN treba da vidi sve. Dodati filtere pogotovo za ADMIN-MANAGER ulogu kako bi mogli da fitriraju po drugim MANAGER, USER, odeljenju testovima i dr.
+Svaki grafik na dashboardu mora da ima opciju da se uveća preko celog ekrana i da se pojavi kartica sa detaljnim informacijama o svemu što se nalazi na grafiku.
+    • Formiranje osnovnih KPI o broju zadatih testova, procentu uspešnosti svakog testa i najbolje i najlošije razvijenoj kompetenciji
+    • Automatsko kreiranje izveštaja o rezultatima kompletnog testa HSE
+    • Automatsko kreiranje izveštaja o rezultatima kompletnog testa tehničkih kompetencija
+
+Stranica za menadzer panel gde može da ima pregled korisnika kojima je zaključan test zbog toga što su pali više od 2 puta isti test sa mogućnošću ručnog otključavanja testova.
+
+Modul mora da sadrži mogućnost filtriranja testova, radnih mesta i zaposlenih i da na osnovu filtera prikazuje 6 kartica sa KPI-jevima koje će definisati naručilac i sa 4 grafika koje će takođe definisati Naručilac. Zavisno od role korisnika dashboard će prikazivati samo ono za šta taj korisnik ima pristup. Rola zaposlenog treba da ima pregled sopstvenih testova i kompetencija.
+
+Frontend tech stack(moguće promeniti):
+Aplikacija treba da bude razvijena u tehnologijama koje se koriste za današnje moderne aplikacije.
+    5. Next.js
+    6. TypeScript
+    7. Tailwind CSS v4
+    8. shadcn/ui
+
+Proces Razvoja
+Svuda gde treba da se unesu neki senzitivni podaci kao link ka bazi, seccrets, username, pasword ostaviti placeholder <VARIABLE_NAME>.
+Rate limiting - Max N zahteva po IP na login/register (npr. upstash/ratelimit)   
+CSRF zaštita - NextAuth ugrađena CSRF zaštita   
+Security headers - CSP, X-Frame-Options, X-Content-Type-Options (next.config.ts)   
+Account lockout - Privremeno zaključavanje naloga posle N neuspelih pokušaja
+Audit log - Beleženje admin akcija (ko je deaktivirao/obrisao korisnika) 
+
+Application Testing
+Nakon svake zavrsene faze projekta uraditi unit testiranje.

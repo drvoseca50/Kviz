@@ -1,0 +1,470 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum RoleName {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum CompetenceType {
+  PROFESSIONAL
+  HSE
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  ORDERING
+  IMAGE_PLACEMENT
+}
+
+enum TestType {
+  HSE
+  TECHNICAL
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+}
+
+// ─── Auth & Users ───────────────────────────────────────────────────────────
+
+model Role {
+  id   Int      @id @default(autoincrement())
+  name RoleName @unique
+
+  userProfiles UserProfileRole[]
+
+  @@map("role")
+}
+
+model UserProfile {
+  id                   Int       @id @default(autoincrement())
+  username             String    @unique @db.VarChar(200)
+  email                String?   @db.VarChar(200)
+  password             String    @db.VarChar(300)
+  lastNameFirstName    String?   @map("lastname_firstname") @db.VarChar(200)
+  sapId                Int       @unique @map("sap_id")
+  phone                String?   @db.VarChar(50)
+  imagePath            String?   @map("image_path") @db.VarChar(300)
+  startDate            DateTime? @map("start_date") @db.Date
+  endDate              DateTime? @map("end_date") @db.Date
+  hseBlocked           Boolean   @default(false) @map("hse_blocked")
+  passwordChangedAt    DateTime? @map("password_changed_at")
+  failedLoginAttempts  Int       @default(0) @map("failed_login_attempts")
+  lockedUntil          DateTime? @map("locked_until")
+
+  positionId           String?   @map("position_id")
+  position             Position? @relation(fields: [positionId], references: [id])
+
+  organisationalUnitId Int?      @map("organisational_unit_id")
+  organisationalUnit   OrganisationalUnit? @relation(fields: [organisationalUnitId], references: [id])
+
+  managerId            Int?      @map("manager_id")
+  manager              UserProfile?  @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates         UserProfile[] @relation("ManagerSubordinates")
+
+  hseManagerId         Int?      @map("hse_manager_id")
+  hseManager           UserProfile?  @relation("HseManagerSubordinates", fields: [hseManagerId], references: [id])
+  hseSubordinates      UserProfile[] @relation("HseManagerSubordinates")
+
+  roles                UserProfileRole[]
+  testAssignments      TestUserProfile[]
+  testResults          TestResult[]
+  hseRequirementRatings HseRequirementRating[]
+  requirementRatings   RequirementRating[]
+  courseAssignments     UserProfileCourse[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  competencesManaged   Competence[] @relation("CompetenceManager")
+
+  @@map("user_profile")
+}
+
+model UserProfileRole {
+  userProfileId Int @map("user_profile_id")
+  roleId        Int @map("role_id")
+
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  role          Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userProfileId, roleId])
+  @@map("user_profile_role")
+}
+
+// ─── Organisation ───────────────────────────────────────────────────────────
+
+model OrganisationalUnit {
+  id                        Int      @id @default(autoincrement())
+  name                      String   @db.VarChar(200)
+
+  superiorId                Int?     @map("organisational_unit_superior_id")
+  superior                  OrganisationalUnit?  @relation("OrgUnitHierarchy", fields: [superiorId], references: [id])
+  children                  OrganisationalUnit[] @relation("OrgUnitHierarchy")
+
+  userProfiles              UserProfile[]
+
+  @@map("organisational_unit")
+}
+
+model Position {
+  id         String  @id @default(cuid()) @db.VarChar(255)
+  name       String  @db.VarChar(200)
+
+  hseGroupId String? @map("hse_group_id")
+  hseGroup   HseGroup? @relation(fields: [hseGroupId], references: [id])
+
+  userProfiles UserProfile[]
+
+  @@map("position")
+}
+
+// ─── HSE Groups ─────────────────────────────────────────────────────────────
+
+model HseGroup {
+  id                   String  @id @db.VarChar(200)
+  name                 String  @db.VarChar(500)
+  program              String  @db.VarChar(200)
+  riskPriority         Int?    @map("risk_priority")
+  minQuestionCountHse  Int?    @map("min_question_count_hse")
+  totalQuestionCountHse Int?   @map("total_question_count_hse")
+
+  positions            Position[]
+  competences          HseGroupCompetence[]
+  tests                Test[]
+
+  @@map("hse_group")
+}
+
+model HseGroupCompetence {
+  hseGroupId   String @map("hse_group_id")
+  competenceId String @map("competence_id")
+
+  hseGroup     HseGroup   @relation(fields: [hseGroupId], references: [id], onDelete: Cascade)
+  competence   Competence @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  @@id([hseGroupId, competenceId])
+  @@map("hse_group_competence")
+}
+
+// ─── Competence Hierarchy ───────────────────────────────────────────────────
+
+model CompetenceCluster {
+  id       Int            @id @default(autoincrement())
+  name     String         @db.VarChar(1000)
+  type     CompetenceType?
+
+  families CompetenceFamily[]
+
+  @@map("competence_cluster")
+}
+
+model CompetenceFamily {
+  id        Int            @id @default(autoincrement())
+  name      String         @db.VarChar(1000)
+  type      CompetenceType?
+
+  clusterId Int            @map("competence_cluster_id")
+  cluster   CompetenceCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+
+  groups    CompetenceGroup[]
+
+  @@map("competence_family")
+}
+
+model CompetenceGroup {
+  id       String         @id @default(cuid()) @db.VarChar(255)
+  name     String         @db.VarChar(1000)
+  type     CompetenceType?
+
+  familyId Int            @map("competence_family_id")
+  family   CompetenceFamily @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  competences Competence[]
+
+  @@map("competence_group")
+}
+
+model Competence {
+  id               String         @id @default(cuid()) @db.VarChar(255)
+  name             String         @db.VarChar(3000)
+  description      String?        @db.VarChar(3000)
+  type             CompetenceType
+  indicatorLevel   Int?           @map("indicator_level")
+  indicatorName    String?        @map("indicator_name") @db.VarChar(3000)
+  passingIndicator Int?           @map("passing_indicator")
+
+  competenceGroupId String        @map("competence_group_id")
+  competenceGroup   CompetenceGroup @relation(fields: [competenceGroupId], references: [id], onDelete: Cascade)
+
+  responsibleManagerId Int?       @map("responsible_manager_id")
+  responsibleManager   UserProfile? @relation("CompetenceManager", fields: [responsibleManagerId], references: [id])
+
+  questions           Question[]
+  hseGroups           HseGroupCompetence[]
+  testTemplateCompetences TestTemplateCompetence[]
+  competenceEqualities    CompetenceEquality[]
+  hseRequirementRatings   HseRequirementRating[]
+  courses                 Course[]
+
+  @@map("competence")
+}
+
+// ─── Questions ──────────────────────────────────────────────────────────────
+
+model Question {
+  id              Int          @id @default(autoincrement())
+  text            String       @db.VarChar(5000)
+  level           Int
+  questionType    QuestionType @map("question_type")
+  imagePath       String?      @map("image_path") @db.VarChar(5000)
+  possibleAnswers Json         @map("possible_answers")
+  correctAnswers  Json         @map("correct_answers")
+  answerTime      Int?         @map("answer_time")
+
+  competenceId    String       @map("competence_id")
+  competence      Competence   @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  testQuestions   TestQuestion[]
+  testAnswers     TestAnswer[]
+
+  @@map("question")
+}
+
+// ─── Test Templates ─────────────────────────────────────────────────────────
+
+model TestTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  competences         TestTemplateCompetence[]
+  competenceEqualities CompetenceEquality[]
+  tests               Test[]
+
+  @@map("test_template")
+}
+
+model TestTemplateCompetence {
+  id                Int    @id @default(autoincrement())
+  numberOfQuestions Int    @map("number_of_questions")
+
+  competenceId      String @map("competence_id")
+  competence        Competence @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  testTemplateId    Int    @map("test_template_id")
+  testTemplate      TestTemplate @relation(fields: [testTemplateId], references: [id], onDelete: Cascade)
+
+  @@map("test_template_competence")
+}
+
+model CompetenceEquality {
+  id                          Int     @id @default(autoincrement())
+  isNumOfQuestionPerLevelEqual Boolean @map("is_num_of_question_per_level_equal")
+
+  competenceId                String  @map("competence_id")
+  competence                  Competence @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  testTemplateId              Int?    @map("test_template_id")
+  testTemplate                TestTemplate? @relation(fields: [testTemplateId], references: [id], onDelete: Cascade)
+
+  @@map("competence_equality")
+}
+
+// ─── Tests ──────────────────────────────────────────────────────────────────
+
+model Test {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(300)
+  description String?   @db.VarChar(500)
+  type        TestType
+  totalTime   Int?      @map("total_time")
+  iteration   Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  createdById Int?      @map("created_by")
+
+  parentTestId Int?     @map("parent_test_id")
+  parentTest   Test?    @relation("TestRetakes", fields: [parentTestId], references: [id])
+  retakes      Test[]   @relation("TestRetakes")
+
+  hseGroupId   String?  @map("hse_group_id")
+  hseGroup     HseGroup? @relation(fields: [hseGroupId], references: [id])
+
+  testTemplateId Int?   @map("test_template_id")
+  testTemplate   TestTemplate? @relation(fields: [testTemplateId], references: [id])
+
+  questions    TestQuestion[]
+  assignedUsers TestUserProfile[]
+  results      TestResult[]
+  hseRequirementRatings HseRequirementRating[]
+  requirementRatings    RequirementRating[]
+  courseAssignments      UserProfileCourse[]
+
+  @@map("test")
+}
+
+model TestQuestion {
+  testId     Int @map("test_id")
+  questionId Int @map("question_id")
+
+  test       Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([testId, questionId])
+  @@map("test_question")
+}
+
+model TestUserProfile {
+  testId        Int @map("test_id")
+  userProfileId Int @map("user_profile_id")
+
+  test          Test        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@id([testId, userProfileId])
+  @@map("test_user_profile")
+}
+
+// ─── Test Results ───────────────────────────────────────────────────────────
+
+model TestResult {
+  id            Int       @id @default(autoincrement())
+  passed        Boolean?
+  percentage    Float?
+  dateTime      DateTime  @default(now()) @map("date_time")
+  remainingTime Int?      @map("remaining_time")
+  stopped       Boolean   @default(false)
+
+  testId        Int       @map("test_id")
+  test          Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  userProfileId Int       @map("user_profile_id")
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  answers       TestAnswer[]
+
+  @@map("test_result")
+}
+
+model TestAnswer {
+  id           Int      @id @default(autoincrement())
+  answer       String?  @db.VarChar(5000)
+  correct      Boolean?
+
+  questionId   Int      @map("question_id")
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  testResultId Int      @map("test_result_id")
+  testResult   TestResult @relation(fields: [testResultId], references: [id], onDelete: Cascade)
+
+  @@map("test_answer")
+}
+
+// ─── Ratings ────────────────────────────────────────────────────────────────
+
+model HseRequirementRating {
+  id           Int     @id @default(autoincrement())
+  fulfill      Boolean?
+  score        Int?
+
+  competenceId String  @map("competence_id")
+  competence   Competence @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  testId       Int     @map("test_id")
+  test         Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  userProfileId Int   @map("user_profile_id")
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@map("hse_requirement_rating")
+}
+
+model RequirementRating {
+  id           Int      @id @default(autoincrement())
+  fulfill      Boolean?
+  rating       Float?
+
+  testId       Int      @map("test_id")
+  test         Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  userProfileId Int    @map("user_profile_id")
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@map("requirement_rating")
+}
+
+// ─── Courses ────────────────────────────────────────────────────────────────
+
+model Course {
+  id              Int     @id @default(autoincrement())
+  name            String  @db.VarChar(300)
+  description     String? @db.VarChar(1000)
+  path            String? @db.VarChar(500)
+  info            String? @db.VarChar(5000)
+  tableOfContents String? @map("table_of_contents") @db.VarChar(5000)
+
+  competenceId    String? @map("competence_id")
+  competence      Competence? @relation(fields: [competenceId], references: [id])
+
+  assignments     UserProfileCourse[]
+
+  @@map("course")
+}
+
+model UserProfileCourse {
+  id           Int       @id @default(autoincrement())
+  confirmed    Boolean   @default(false)
+  startTime    DateTime? @map("start_time")
+
+  userProfileId Int      @map("user_profile_id")
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  courseId      Int       @map("course_id")
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  testId        Int?     @map("test_id")
+  test          Test?    @relation(fields: [testId], references: [id])
+
+  @@map("user_profile_course")
+}
+
+// ─── Notifications ──────────────────────────────────────────────────────────
+
+model Notification {
+  id           Int                @id @default(autoincrement())
+  message      String             @db.VarChar(1000)
+  status       NotificationStatus @default(UNREAD)
+  url          String?            @db.VarChar(500)
+  createdAt    DateTime           @default(now()) @map("created_at")
+
+  userProfileId Int               @map("user_profile_id")
+  userProfile   UserProfile       @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+
+  @@map("notification")
+}
+
+// ─── Audit Log ──────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  action     String   @db.VarChar(200)
+  entityType String   @map("entity_type") @db.VarChar(200)
+  entityId   String   @map("entity_id") @db.VarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actorId    Int      @map("actor_id")
+  actor      UserProfile @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@map("audit_log")
+}

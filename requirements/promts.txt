@@ -1,0 +1,6 @@
+Na osnovu requrement.txt fajla na lokaciji requirements/requirement.txt i sql scripte requirements/schema.sql napraviti CLAUDE.md fajl.
+Potrebno je da se podeli u faze rada.
+Kompletna aplikacija treba da bude na engleskom jeziku kao i CLAUDE.md.
+SQL schema je data kao ideja da se iskoristi sta je potrebno za ovaj projekat. Ne treba iskoristiti sve table jer je ovo shema slicne aplikaicje.
+
+Na osnovu print screen slike requirements/MainDesign.png ubaciti u CLAUDE.md fajl stil aplikacije
