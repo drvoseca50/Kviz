@@ -15,7 +15,7 @@ export function Sidebar({ roles }: SidebarProps) {
   const { items, roleLabel } = getNavItemsForRole(roles);
 
   return (
-    <aside className="flex h-screen w-64 flex-col bg-[#0A1628] text-gray-300">
+    <aside className="flex h-screen w-64 shrink-0 flex-col bg-[#0A1628] text-gray-300">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-6">
         <Shield className="h-6 w-6 text-blue-500" />

@@ -30,7 +30,8 @@ export default auth((req) => {
   }
 
   // Force password change if not yet changed or expired (within 3 days)
-  if (pathname !== "/change-password" && !pathname.startsWith("/api/auth")) {
+  // Skip API routes — they handle auth independently via requireAuth/requireRole
+  if (pathname !== "/change-password" && !pathname.startsWith("/api/")) {
     const passwordChangedAt = user.passwordChangedAt
       ? new Date(user.passwordChangedAt)
       : null;

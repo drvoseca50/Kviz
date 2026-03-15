@@ -27,6 +27,7 @@ interface UserDetail {
   sapId: number;
   phone: string | null;
   hseBlocked: boolean;
+  endDate: string | null;
   positionId: string | null;
   organisationalUnitId: number | null;
   managerId: number | null;
@@ -129,6 +130,28 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
     if (user) {
       setUser({ ...user, roles: roles.map((r: Role) => ({ role: r })) });
     }
+  }
+
+  async function handleToggleActive() {
+    const action = user?.endDate ? "activate" : "deactivate";
+    if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+    const res = await fetch(`/api/users/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        endDate: user?.endDate ? null : new Date().toISOString(),
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error);
+      return;
+    }
+
+    setUser(data);
+    setSuccess(`User ${action}d successfully`);
   }
 
   if (loading || !user) return <div className="text-muted-foreground">Loading...</div>;
@@ -273,8 +296,17 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
           <Button variant="outline" onClick={handleResetPassword}>
             Reset Password
           </Button>
+          <Button
+            variant={user.endDate ? "default" : "destructive"}
+            onClick={handleToggleActive}
+          >
+            {user.endDate ? "Activate User" : "Deactivate User"}
+          </Button>
           {user.hseBlocked && (
             <Badge variant="destructive" className="self-center">HSE Blocked</Badge>
+          )}
+          {user.endDate && (
+            <Badge variant="secondary" className="self-center">Inactive</Badge>
           )}
         </div>
       </div>

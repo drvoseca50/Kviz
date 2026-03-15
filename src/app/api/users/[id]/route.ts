@@ -96,19 +96,38 @@ export async function PUT(request: Request, { params }: RouteParams) {
         ...(data.organisationalUnitId !== undefined && { organisationalUnitId: data.organisationalUnitId }),
         ...(data.managerId !== undefined && { managerId: data.managerId }),
         ...(data.hseManagerId !== undefined && { hseManagerId: data.hseManagerId }),
+        ...(data.endDate !== undefined && { endDate: data.endDate ? new Date(data.endDate) : null }),
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        lastNameFirstName: true,
+        sapId: true,
+        phone: true,
+        startDate: true,
+        endDate: true,
+        hseBlocked: true,
+        positionId: true,
+        organisationalUnitId: true,
+        managerId: true,
+        hseManagerId: true,
+        roles: { include: { role: true } },
       },
     });
 
+    const action = data.endDate !== undefined
+      ? (data.endDate ? "DEACTIVATE" : "ACTIVATE")
+      : "UPDATE";
+
     await createAuditLog(
       Number(session.user.id),
-      "UPDATE",
+      action,
       "USER_PROFILE",
       user.id
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _pw, ...userWithoutPassword } = user as Record<string, unknown>;
-    return apiResponse(userWithoutPassword);
+    return apiResponse(user);
   } catch (error) {
     return handleApiError(error);
   }

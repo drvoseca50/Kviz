@@ -89,7 +89,7 @@ async function main() {
       lastNameFirstName: "Admin User",
       sapId: 10001,
       organisationalUnitId: hqUnit.id,
-      passwordChangedAt: null, // force password change on first login
+      passwordChangedAt: new Date(), // set for testing; remove to force password change
     },
   });
   await prisma.userProfileRole.upsert({
@@ -110,7 +110,7 @@ async function main() {
       sapId: 10002,
       organisationalUnitId: hqUnit.id,
       positionId: posEngineer.id,
-      passwordChangedAt: null,
+      passwordChangedAt: new Date(),
     },
   });
   await prisma.userProfileRole.upsert({
@@ -132,7 +132,7 @@ async function main() {
       organisationalUnitId: opsUnit.id,
       positionId: posEngineer.id,
       managerId: manager.id,
-      passwordChangedAt: null,
+      passwordChangedAt: new Date(),
     },
   });
   await prisma.userProfileRole.upsert({
@@ -154,7 +154,7 @@ async function main() {
       organisationalUnitId: opsUnit.id,
       positionId: posTechnician.id,
       managerId: manager.id,
-      passwordChangedAt: null,
+      passwordChangedAt: new Date(),
     },
   });
   await prisma.userProfileRole.upsert({

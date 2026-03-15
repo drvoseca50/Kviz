@@ -32,6 +32,7 @@ export const updateUserSchema = z.object({
   organisationalUnitId: z.number().int().positive().optional().nullable(),
   managerId: z.number().int().positive().optional().nullable(),
   hseManagerId: z.number().int().positive().optional().nullable(),
+  endDate: z.string().datetime().optional().nullable(),
 });
 
 export const assignRoleSchema = z.object({
