@@ -6,3 +6,5 @@ SQL schema je data kao ideja da se iskoristi sta je potrebno za ovaj projekat. N
 na osnovu print screen slike requirements/maindesign.png ubaciti u claude.md fajl stil aplikacije
 
         1
+
+Current backend database is called testikko inside postgresq instance. Just switch beckend base to another one, with same credentials and server call appbase

@@ -75,7 +75,7 @@ export function DataTable<T extends Record<string, unknown>>({
           className="max-w-sm"
         />
       )}
-      <div className="rounded-xl border border-border bg-white shadow-sm">
+      <div className="rounded-xl border border-border bg-white shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
