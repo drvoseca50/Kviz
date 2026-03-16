@@ -20,7 +20,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     const position = await prisma.position.findUnique({
       where: { id },
-      include: { hseGroup: true },
+      include: {
+        hseGroup: true,
+        competences: { include: { competence: true } },
+      },
     });
 
     if (!position) {

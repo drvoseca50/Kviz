@@ -15,6 +15,7 @@ export const updateHseGroupSchema = z.object({
   riskPriority: z.number().int().optional().nullable(),
   minQuestionCountHse: z.number().int().optional().nullable(),
   totalQuestionCountHse: z.number().int().optional().nullable(),
+  competenceIds: z.array(z.string()).optional(),
 });
 
 export type CreateHseGroupInput = z.infer<typeof createHseGroupSchema>;

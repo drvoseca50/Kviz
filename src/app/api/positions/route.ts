@@ -13,7 +13,10 @@ export async function GET() {
     await requireRole("ADMIN", "MANAGER");
 
     const positions = await prisma.position.findMany({
-      include: { hseGroup: true },
+      include: {
+        hseGroup: true,
+        _count: { select: { competences: true } },
+      },
       orderBy: { name: "asc" },
     });
 

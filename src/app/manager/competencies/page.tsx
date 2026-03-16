@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Settings2, Check } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -327,6 +327,182 @@ function CompetenciesTab({ competencies, groups, onReload }: { competencies: Com
   );
 }
 
+// ─── HSE Groups Tab (Manager) ────────────────────────────────────────────────
+
+interface HseGroupData {
+  id: string;
+  name: string;
+  program: string;
+  riskPriority: number | null;
+  minQuestionCountHse: number | null;
+  totalQuestionCountHse: number | null;
+  _count: { competences: number; positions: number };
+}
+
+function HseGroupsTab({
+  hseGroups,
+  competencies,
+  onReload,
+}: {
+  hseGroups: HseGroupData[];
+  competencies: Competence[];
+  onReload: () => void;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [program, setProgram] = useState("");
+  const [riskPriority, setRiskPriority] = useState("");
+  const [minQuestionCount, setMinQuestionCount] = useState("");
+  const [totalQuestionCount, setTotalQuestionCount] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [managingId, setManagingId] = useState<string | null>(null);
+  const [selectedCompetenceIds, setSelectedCompetenceIds] = useState<string[]>([]);
+  const [savingCompetences, setSavingCompetences] = useState(false);
+
+  const hseCompetencies = competencies.filter((c) => c.type === "HSE");
+
+  function openEdit(g: HseGroupData) {
+    setEditingId(g.id);
+    setName(g.name);
+    setProgram(g.program);
+    setRiskPriority(g.riskPriority?.toString() ?? "");
+    setMinQuestionCount(g.minQuestionCountHse?.toString() ?? "");
+    setTotalQuestionCount(g.totalQuestionCountHse?.toString() ?? "");
+    setError(null);
+    setShowForm(true);
+    setManagingId(null);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const body = {
+      name,
+      program,
+      riskPriority: riskPriority ? Number(riskPriority) : null,
+      minQuestionCountHse: minQuestionCount ? Number(minQuestionCount) : null,
+      totalQuestionCountHse: totalQuestionCount ? Number(totalQuestionCount) : null,
+    };
+    const res = await fetch(`/api/hse-groups/${editingId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) { setError(data.error); return; }
+    setShowForm(false);
+    onReload();
+  }
+
+  async function openManageCompetences(id: string) {
+    setManagingId(id);
+    setShowForm(false);
+    const res = await fetch(`/api/hse-groups/${id}`);
+    const data = await res.json();
+    if (res.ok) {
+      setSelectedCompetenceIds(
+        (data.competences || []).map((c: { competenceId: string }) => c.competenceId)
+      );
+    }
+  }
+
+  function toggleCompetence(id: string) {
+    setSelectedCompetenceIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  async function saveCompetences() {
+    if (!managingId) return;
+    setSavingCompetences(true);
+    const res = await fetch(`/api/hse-groups/${managingId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ competenceIds: selectedCompetenceIds }),
+    });
+    setSavingCompetences(false);
+    if (res.ok) { setManagingId(null); onReload(); }
+    else { const data = await res.json(); alert(data.error || "Failed to save"); }
+  }
+
+  const columns: Column<Record<string, unknown>>[] = [
+    { key: "id", label: "ID", sortable: true },
+    { key: "name", label: "Name", sortable: true },
+    { key: "program", label: "Program", sortable: true },
+    { key: "riskPriority", label: "Risk Priority", render: (item) => (item as unknown as HseGroupData).riskPriority ?? "—" },
+    { key: "competences", label: "Competences", render: (item) => (item as unknown as HseGroupData)._count?.competences ?? 0 },
+    { key: "positions", label: "Positions", render: (item) => (item as unknown as HseGroupData)._count?.positions ?? 0 },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Manage HSE groups and their competence assignments</p>
+      </div>
+
+      {showForm && (
+        <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold">Edit HSE Group</h2>
+          {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label htmlFor="hse-name">Name *</Label><Input id="hse-name" value={name} onChange={(e) => setName(e.target.value)} required className="h-11" /></div>
+              <div className="space-y-2"><Label htmlFor="hse-program">Program *</Label><Input id="hse-program" value={program} onChange={(e) => setProgram(e.target.value)} required className="h-11" /></div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2"><Label htmlFor="hse-risk">Risk Priority</Label><Input id="hse-risk" type="number" value={riskPriority} onChange={(e) => setRiskPriority(e.target.value)} className="h-11" /></div>
+              <div className="space-y-2"><Label htmlFor="hse-min-q">Min Question Count</Label><Input id="hse-min-q" type="number" value={minQuestionCount} onChange={(e) => setMinQuestionCount(e.target.value)} className="h-11" /></div>
+              <div className="space-y-2"><Label htmlFor="hse-total-q">Total Question Count</Label><Input id="hse-total-q" type="number" value={totalQuestionCount} onChange={(e) => setTotalQuestionCount(e.target.value)} className="h-11" /></div>
+            </div>
+            <div className="flex gap-3">
+              <Button type="submit">Save Changes</Button>
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {managingId && (
+        <div className="rounded-xl border border-border bg-white p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Manage Competences — {hseGroups.find((g) => g.id === managingId)?.name}</h2>
+            <div className="flex gap-3">
+              <Button onClick={saveCompetences} disabled={savingCompetences}><Check className="mr-2 h-4 w-4" />{savingCompetences ? "Saving..." : "Save"}</Button>
+              <Button variant="outline" onClick={() => setManagingId(null)}>Cancel</Button>
+            </div>
+          </div>
+          {hseCompetencies.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No HSE competencies defined yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {hseCompetencies.map((c) => (
+                <label key={c.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 hover:bg-gray-50">
+                  <input type="checkbox" checked={selectedCompetenceIds.includes(c.id)} onChange={() => toggleCompetence(c.id)} className="h-4 w-4 rounded border-gray-300" />
+                  <span className="text-sm">{c.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <DataTable
+        data={hseGroups as unknown as Record<string, unknown>[]}
+        columns={columns}
+        searchKey="name"
+        searchPlaceholder="Search HSE groups..."
+        actions={(item) => (
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" onClick={() => openManageCompetences((item as unknown as HseGroupData).id)} title="Manage Competences"><Settings2 className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={() => openEdit(item as unknown as HseGroupData)}><Pencil className="h-4 w-4" /></Button>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ManagerCompetenciesPage() {
@@ -334,6 +510,7 @@ export default function ManagerCompetenciesPage() {
   const [families, setFamilies] = useState<Family[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [competencies, setCompetencies] = useState<Competence[]>([]);
+  const [hseGroups, setHseGroups] = useState<HseGroupData[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(() => {
@@ -342,8 +519,9 @@ export default function ManagerCompetenciesPage() {
       fetch("/api/competence-families").then((r) => r.json()),
       fetch("/api/competence-groups").then((r) => r.json()),
       fetch("/api/competencies").then((r) => r.json()),
-    ]).then(([cls, fam, grp, comp]) => {
-      setClusters(Array.isArray(cls) ? cls : []); setFamilies(Array.isArray(fam) ? fam : []); setGroups(Array.isArray(grp) ? grp : []); setCompetencies(Array.isArray(comp) ? comp : []); setLoading(false);
+      fetch("/api/hse-groups").then((r) => r.json()),
+    ]).then(([cls, fam, grp, comp, hse]) => {
+      setClusters(Array.isArray(cls) ? cls : []); setFamilies(Array.isArray(fam) ? fam : []); setGroups(Array.isArray(grp) ? grp : []); setCompetencies(Array.isArray(comp) ? comp : []); setHseGroups(Array.isArray(hse) ? hse : []); setLoading(false);
     });
   }, []);
 
@@ -363,11 +541,13 @@ export default function ManagerCompetenciesPage() {
           <TabsTrigger value="clusters">Clusters ({clusters.length})</TabsTrigger>
           <TabsTrigger value="families">Families ({families.length})</TabsTrigger>
           <TabsTrigger value="groups">Groups ({groups.length})</TabsTrigger>
+          <TabsTrigger value="hse-groups">HSE Groups ({hseGroups.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="competencies" className="mt-6"><CompetenciesTab competencies={competencies} groups={groups} onReload={loadData} /></TabsContent>
         <TabsContent value="clusters" className="mt-6"><ClustersTab clusters={clusters} onReload={loadData} /></TabsContent>
         <TabsContent value="families" className="mt-6"><FamiliesTab families={families} clusters={clusters} onReload={loadData} /></TabsContent>
         <TabsContent value="groups" className="mt-6"><GroupsTab groups={groups} families={families} onReload={loadData} /></TabsContent>
+        <TabsContent value="hse-groups" className="mt-6"><HseGroupsTab hseGroups={hseGroups} competencies={competencies} onReload={loadData} /></TabsContent>
       </Tabs>
     </div>
   );

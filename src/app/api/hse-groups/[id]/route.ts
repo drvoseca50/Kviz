@@ -35,7 +35,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const session = await requireRole("ADMIN");
+    const session = await requireRole("ADMIN", "MANAGER");
     const { id } = await params;
     const data = await parseBody(request, updateHseGroupSchema);
 
@@ -44,15 +44,33 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return apiError("HSE group not found", 404);
     }
 
-    const group = await prisma.hseGroup.update({
-      where: { id },
-      data: {
-        ...(data.name !== undefined && { name: data.name }),
-        ...(data.program !== undefined && { program: data.program }),
-        ...(data.riskPriority !== undefined && { riskPriority: data.riskPriority }),
-        ...(data.minQuestionCountHse !== undefined && { minQuestionCountHse: data.minQuestionCountHse }),
-        ...(data.totalQuestionCountHse !== undefined && { totalQuestionCountHse: data.totalQuestionCountHse }),
-      },
+    const { competenceIds, ...fields } = data;
+
+    const group = await prisma.$transaction(async (tx) => {
+      const updated = await tx.hseGroup.update({
+        where: { id },
+        data: {
+          ...(fields.name !== undefined && { name: fields.name }),
+          ...(fields.program !== undefined && { program: fields.program }),
+          ...(fields.riskPriority !== undefined && { riskPriority: fields.riskPriority }),
+          ...(fields.minQuestionCountHse !== undefined && { minQuestionCountHse: fields.minQuestionCountHse }),
+          ...(fields.totalQuestionCountHse !== undefined && { totalQuestionCountHse: fields.totalQuestionCountHse }),
+        },
+      });
+
+      if (competenceIds !== undefined) {
+        await tx.hseGroupCompetence.deleteMany({ where: { hseGroupId: id } });
+        if (competenceIds.length > 0) {
+          await tx.hseGroupCompetence.createMany({
+            data: competenceIds.map((competenceId) => ({
+              hseGroupId: id,
+              competenceId,
+            })),
+          });
+        }
+      }
+
+      return updated;
     });
 
     await createAuditLog(

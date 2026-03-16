@@ -125,8 +125,20 @@ model Position {
   hseGroup   HseGroup? @relation(fields: [hseGroupId], references: [id])
 
   userProfiles UserProfile[]
+  competences  PositionCompetence[]
 
   @@map("position")
+}
+
+model PositionCompetence {
+  positionId   String @map("position_id")
+  competenceId String @map("competence_id")
+
+  position     Position   @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  competence   Competence @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  @@id([positionId, competenceId])
+  @@map("position_competence")
 }
 
 // ─── HSE Groups ─────────────────────────────────────────────────────────────
@@ -212,6 +224,7 @@ model Competence {
 
   questions           Question[]
   hseGroups           HseGroupCompetence[]
+  positions           PositionCompetence[]
   testTemplateCompetences TestTemplateCompetence[]
   competenceEqualities    CompetenceEquality[]
   hseRequirementRatings   HseRequirementRating[]

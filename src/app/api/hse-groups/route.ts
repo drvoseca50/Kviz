@@ -14,6 +14,9 @@ export async function GET() {
 
     const groups = await prisma.hseGroup.findMany({
       orderBy: { name: "asc" },
+      include: {
+        _count: { select: { competences: true, positions: true } },
+      },
     });
 
     return apiResponse(groups);
